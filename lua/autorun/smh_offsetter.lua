@@ -378,6 +378,7 @@ end)
 util.AddNetworkString("smh_offsetter_request_list")
 util.AddNetworkString("smh_offsetter_send_list")
 util.AddNetworkString("smh_offsetter_recapture")
+util.AddNetworkString("smh_offsetter_unlink")
 
 local function sendAttachedPairs(player)
 	local pairsToSend = {}
@@ -421,6 +422,18 @@ net.Receive("smh_offsetter_recapture", function(_, player)
 	end
 
 	captureZeroPoint(source, offsetter, hologram)
+	sendAttachedPairs(player)
+end)
+
+net.Receive("smh_offsetter_unlink", function(_, player)
+	local source = net.ReadEntity()
+	local offsetter = net.ReadEntity()
+	if not IsValid(source) or not IsValid(offsetter) or not DataHasPair(offsetter, source) then
+		return
+	end
+
+	DataRemovePair(offsetter, source)
+	storeDupeState(offsetter)
 	sendAttachedPairs(player)
 end)
 

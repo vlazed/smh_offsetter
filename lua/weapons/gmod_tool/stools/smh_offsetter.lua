@@ -240,6 +240,20 @@ function TOOL.BuildCPanel(panel)
 		net.SendToServer()
 	end
 
+	local unlinkButton = panel:Button("#tool.smh_offsetter.unlink")
+	unlinkButton.DoClick = function()
+		local selected = activeSourceList:GetSelectedLine()
+		local line = selected and activeSourceList:GetLine(selected)
+		if not line or not IsValid(line.Source) or not IsValid(line.Offsetter) then
+			return
+		end
+
+		net.Start("smh_offsetter_unlink")
+		net.WriteEntity(line.Source)
+		net.WriteEntity(line.Offsetter)
+		net.SendToServer()
+	end
+
 	requestSourceList()
 
 	local pl = LocalPlayer()
