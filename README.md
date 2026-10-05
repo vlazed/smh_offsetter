@@ -49,6 +49,7 @@ To bake holograms to the SMH timeline, you can do the following:
 2. Create (derived) physics bone keyframes for the hologram, either manually or with the Physics Recorder.
 3. In the tool panel offsetter list, select the line that best corresponds to the hologram you want to bake.
 4. Click "Unlink selected hologram"
+5. The unlinked hologram will now animate on the timeline as usual. 
 
 ## Disclaimer
 
