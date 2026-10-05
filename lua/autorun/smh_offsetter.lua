@@ -2,7 +2,25 @@ if CLIENT then
 	return
 end
 
+if not SMHOffsetter or not SMHOffsetter.Data then
+	include("autorun/smh_offsetter_data.lua")
+end
+
 local offset
+local Data = SMHOffsetter.Data
+local DataAddPair = Data.AddPair
+local DataClearOffsetter = Data.ClearOffsetter
+local DataGetHologram = Data.GetHologram
+local DataGetHologramZeroPoint = Data.GetHologramZeroPoint
+local DataGetOffsetters = Data.GetOffsetters
+local DataGetSources = Data.GetSources
+local DataGetSourceZeroPoint = Data.GetSourceZeroPoint
+local DataHasPair = Data.HasPair
+local DataRemovePair = Data.RemovePair
+local DataSetZeroPoints = Data.SetZeroPoints
+local DataGetOffset = Data.GetOffset
+local DataSetOffset = Data.SetOffset
+local DataGetClassVars = Data.GetClassVars
 
 local ENTITY = FindMetaTable("Entity")
 local PHYSOBJ = FindMetaTable("PhysObj")
@@ -12,7 +30,7 @@ local EntityGetPos
 ---@type fun(entity: Entity): Angle
 local EntityGetAngles
 local EntityGetPhysicsObject
-local EntityGetPhysicsObjectCount, EntityGetPhysicsObjectNum, EntityGetNetworkVars
+local EntityGetPhysicsObjectCount, EntityGetPhysicsObjectNum
 local EntityGetNWVarTable, EntityGetNW2VarTable, EntitySetNWBool, EntitySetNWInt
 local EntitySetNWFloat, EntitySetNWString, EntitySetNWVector, EntitySetNWAngle
 local EntitySetNWEntity, EntitySetNW2Var, EntityGetSkin, EntitySetSkin
@@ -22,62 +40,68 @@ local EntityGetFlexScale, EntitySetFlexScale, EntityGetFlexNum, EntityGetFlexWei
 local EntityGetBoneCount, EntityGetManipulateBonePosition, EntityGetManipulateBoneAngles
 local EntityGetManipulateBoneScale, EntityManipulateBonePosition, EntityManipulateBoneAngles
 local EntityManipulateBoneScale, EntityEntIndex, EntityCallOnRemove, EntityIsMarkedForDeletion
+local EntityIsValid, PhysObjIsValid
 
 local PhysObjGetPos, PhysObjGetAngles, PhysObjEnableMotion, PhysObjEnableCollisions
 local PhysObjSetPos, PhysObjSetAngles, PhysObjWake
 local function updateEntityMethods(smh)
 	opt = smh and smh.Optimizations or SMH.Optimizations
-	local function method(optimizedName, entityName)
+	local function entityMethod(optimizedName, entityName)
 		return opt[optimizedName] or ENTITY[entityName]
+	end
+
+	local function physObjMethod(optimizedName, entityName)
+		return opt[optimizedName] or PHYSOBJ[entityName]
 	end
 
 	EntityGetPos = ENTITY.GetPos
 	EntityGetAngles = ENTITY.GetAngles
-	EntityGetPhysicsObject = method("EntityGetPhysicsObject", "GetPhysicsObject")
-	EntityGetPhysicsObjectCount = method("EntityGetPhysicsObjectCount", "GetPhysicsObjectCount")
-	EntityGetPhysicsObjectNum = method("EntityGetPhysicsObjectNum", "GetPhysicsObjectNum")
-	EntityGetNetworkVars = method("EntityGetNetworkVars", "GetNetworkVars")
-	EntityGetNWVarTable = method("EntityGetNWVarTable", "GetNWVarTable")
-	EntityGetNW2VarTable = method("EntityGetNW2VarTable", "GetNW2VarTable")
-	EntitySetNWBool = method("EntitySetNWBool", "SetNWBool")
-	EntitySetNWInt = method("EntitySetNWInt", "SetNWInt")
-	EntitySetNWFloat = method("EntitySetNWFloat", "SetNWFloat")
-	EntitySetNWString = method("EntitySetNWString", "SetNWString")
-	EntitySetNWVector = method("EntitySetNWVector", "SetNWVector")
-	EntitySetNWAngle = method("EntitySetNWAngle", "SetNWAngle")
-	EntitySetNWEntity = method("EntitySetNWEntity", "SetNWEntity")
-	EntitySetNW2Var = method("EntitySetNW2Var", "SetNW2Var")
-	EntityGetSkin = method("EntityGetSkin", "GetSkin")
-	EntitySetSkin = method("EntitySetSkin", "SetSkin")
-	EntityGetColor = method("EntityGetColor", "GetColor")
-	EntitySetColor = method("EntitySetColor", "SetColor")
-	EntityGetEyeTarget = method("EntityGetEyeTarget", "GetEyeTarget")
-	EntitySetEyeTarget = method("EntitySetEyeTarget", "SetEyeTarget")
-	EntityGetBodyGroups = method("EntityGetBodyGroups", "GetBodyGroups")
-	EntityGetBodygroup = method("EntityGetBodygroup", "GetBodygroup")
-	EntitySetBodygroup = method("EntitySetBodygroup", "SetBodygroup")
-	EntityGetFlexScale = method("EntityGetFlexScale", "GetFlexScale")
-	EntitySetFlexScale = method("EntitySetFlexScale", "SetFlexScale")
-	EntityGetFlexNum = method("EntityGetFlexNum", "GetFlexNum")
-	EntityGetFlexWeight = method("EntityGetFlexWeight", "GetFlexWeight")
-	EntitySetFlexWeight = method("EntitySetFlexWeight", "SetFlexWeight")
-	EntityGetBoneCount = method("EntityGetBoneCount", "GetBoneCount")
-	EntityGetManipulateBonePosition = method("EntityGetManipulateBonePosition", "GetManipulateBonePosition")
-	EntityGetManipulateBoneAngles = method("EntityGetManipulateBoneAngles", "GetManipulateBoneAngles")
-	EntityGetManipulateBoneScale = method("EntityGetManipulateBoneScale", "GetManipulateBoneScale")
-	EntityManipulateBonePosition = method("EntityManipulateBonePosition", "ManipulateBonePosition")
-	EntityManipulateBoneAngles = method("EntityManipulateBoneAngles", "ManipulateBoneAngles")
-	EntityManipulateBoneScale = method("EntityManipulateBoneScale", "ManipulateBoneScale")
-	EntityEntIndex = method("EntityEntIndex", "EntIndex")
-	EntityCallOnRemove = method("EntityCallOnRemove", "CallOnRemove")
-	EntityIsMarkedForDeletion = method("EntityIsMarkedForDeletion", "IsMarkedForDeletion")
+	EntityGetPhysicsObject = entityMethod("EntityGetPhysicsObject", "GetPhysicsObject")
+	EntityGetPhysicsObjectCount = entityMethod("EntityGetPhysicsObjectCount", "GetPhysicsObjectCount")
+	EntityGetPhysicsObjectNum = entityMethod("EntityGetPhysicsObjectNum", "GetPhysicsObjectNum")
+	EntityGetNWVarTable = entityMethod("EntityGetNWVarTable", "GetNWVarTable")
+	EntityGetNW2VarTable = entityMethod("EntityGetNW2VarTable", "GetNW2VarTable")
+	EntitySetNWBool = entityMethod("EntitySetNWBool", "SetNWBool")
+	EntitySetNWInt = entityMethod("EntitySetNWInt", "SetNWInt")
+	EntitySetNWFloat = entityMethod("EntitySetNWFloat", "SetNWFloat")
+	EntitySetNWString = entityMethod("EntitySetNWString", "SetNWString")
+	EntitySetNWVector = entityMethod("EntitySetNWVector", "SetNWVector")
+	EntitySetNWAngle = entityMethod("EntitySetNWAngle", "SetNWAngle")
+	EntitySetNWEntity = entityMethod("EntitySetNWEntity", "SetNWEntity")
+	EntitySetNW2Var = entityMethod("EntitySetNW2Var", "SetNW2Var")
+	EntityGetSkin = entityMethod("EntityGetSkin", "GetSkin")
+	EntitySetSkin = entityMethod("EntitySetSkin", "SetSkin")
+	EntityGetColor = entityMethod("EntityGetColor", "GetColor")
+	EntitySetColor = entityMethod("EntitySetColor", "SetColor")
+	EntityGetEyeTarget = entityMethod("EntityGetEyeTarget", "GetEyeTarget")
+	EntitySetEyeTarget = entityMethod("EntitySetEyeTarget", "SetEyeTarget")
+	EntityGetBodyGroups = entityMethod("EntityGetBodyGroups", "GetBodyGroups")
+	EntityGetBodygroup = entityMethod("EntityGetBodygroup", "GetBodygroup")
+	EntitySetBodygroup = entityMethod("EntitySetBodygroup", "SetBodygroup")
+	EntityGetFlexScale = entityMethod("EntityGetFlexScale", "GetFlexScale")
+	EntitySetFlexScale = entityMethod("EntitySetFlexScale", "SetFlexScale")
+	EntityGetFlexNum = entityMethod("EntityGetFlexNum", "GetFlexNum")
+	EntityGetFlexWeight = entityMethod("EntityGetFlexWeight", "GetFlexWeight")
+	EntitySetFlexWeight = entityMethod("EntitySetFlexWeight", "SetFlexWeight")
+	EntityGetBoneCount = entityMethod("EntityGetBoneCount", "GetBoneCount")
+	EntityGetManipulateBonePosition = entityMethod("EntityGetManipulateBonePosition", "GetManipulateBonePosition")
+	EntityGetManipulateBoneAngles = entityMethod("EntityGetManipulateBoneAngles", "GetManipulateBoneAngles")
+	EntityGetManipulateBoneScale = entityMethod("EntityGetManipulateBoneScale", "GetManipulateBoneScale")
+	EntityManipulateBonePosition = entityMethod("EntityManipulateBonePosition", "ManipulateBonePosition")
+	EntityManipulateBoneAngles = entityMethod("EntityManipulateBoneAngles", "ManipulateBoneAngles")
+	EntityManipulateBoneScale = entityMethod("EntityManipulateBoneScale", "ManipulateBoneScale")
+	EntityEntIndex = entityMethod("EntityEntIndex", "EntIndex")
+	EntityCallOnRemove = entityMethod("EntityCallOnRemove", "CallOnRemove")
+	EntityIsMarkedForDeletion = entityMethod("EntityIsMarkedForDeletion", "IsMarkedForDeletion")
+	EntityIsValid = ENTITY.IsValid
 	PhysObjGetPos = PHYSOBJ.GetPos
 	PhysObjGetAngles = PHYSOBJ.GetAngles
-	PhysObjEnableMotion = opt.PhysObjEnableMotion or PHYSOBJ.EnableMotion
+	PhysObjEnableMotion = physObjMethod("PhysObjEnableMotion", "EnableMotion")
 	PhysObjEnableCollisions = PHYSOBJ.EnableCollisions
-	PhysObjSetPos = opt.PhysObjSetPos or PHYSOBJ.SetPos
-	PhysObjSetAngles = opt.PhysObjSetAngles or PHYSOBJ.SetAngles
-	PhysObjWake = opt.PhysObjWake or PHYSOBJ.Wake
+	PhysObjSetPos = physObjMethod("PhysObjSetPos", "SetPos")
+	PhysObjSetAngles = physObjMethod("PhysObjSetAngles", "SetAngles")
+	PhysObjWake = physObjMethod("PhysObjWake", "Wake")
+	PhysObjIsValid = PHYSOBJ.IsValid
 end
 
 updateEntityMethods(SMH)
@@ -92,11 +116,13 @@ local function storeDupeState(offsetter)
 		offset = Vector(offsetter:GetX(), offsetter:GetY(), offsetter:GetZ()),
 		pairs = {},
 	}
-	for source in pairs(offsetter.sources or {}) do
+	local sources = DataGetSources(offsetter)
+	for i = 1, #sources do
+		local source = sources[i]
 		if IsValid(source) then
-			local hologram = offsetter.holograms and offsetter.holograms[source]
-			local sourceZero = offsetter.zeroPoints and offsetter.zeroPoints[source]
-			local hologramZero = IsValid(hologram) and hologram.zeroPoint
+			local hologram = DataGetHologram(offsetter, source)
+			local sourceZero = DataGetSourceZeroPoint(offsetter, source)
+			local hologramZero = DataGetHologramZeroPoint(offsetter, source)
 			if not IsValid(hologram) or not sourceZero or not hologramZero then
 				continue
 			end
@@ -130,10 +156,11 @@ local function setPhysicsPose(phys, pos, ang)
 	PhysObjWake(phys)
 end
 
+---@param origin smh_offsetter
 local function getOriginTransform(origin)
 	local phys = EntityGetPhysicsObject(origin)
 	local pos, ang = PhysObjGetPos(phys), PhysObjGetAngles(phys)
-	local offset = origin.Offset or Vector(origin:GetX(), origin:GetY(), origin:GetZ())
+	local offset = DataGetOffset(origin)
 	local offsetPos = LocalToWorld(offset, angle_zero, pos, ang)
 	return offsetPos, ang
 end
@@ -141,10 +168,16 @@ end
 ---@param source Entity
 ---@param hologram Entity
 local function copyNetworkVars(source, hologram)
-	if isfunction(EntityGetNetworkVars) then
-		for key, value in pairs(EntityGetNetworkVars(source) or {}) do
-			local setter = hologram["Set" .. key]
-			if isfunction(setter) and value ~= nil then
+	local classVars = DataGetClassVars(source)
+	if classVars.sent then
+		for _, name in ipairs(classVars.names) do
+			local getter = source["Get" .. name]
+			local setter = hologram["Set" .. name]
+			if isfunction(getter) and isfunction(setter) then
+				local value = getter(source)
+				if value == nil then
+					continue
+				end
 				setter(hologram, value)
 			end
 		end
@@ -238,16 +271,15 @@ local function alignPose(newOrigin, source, hologram)
 end
 
 local function bindPair(newOrigin, source, hologram)
-	newOrigin.sources = newOrigin.sources or {}
-	newOrigin.holograms = newOrigin.holograms or {}
-	newOrigin.zeroPoints = newOrigin.zeroPoints or {}
-	source.offsetters = source.offsetters or {}
-	newOrigin.sources[source] = true
-	newOrigin.holograms[source] = hologram
-	source.offsetters[newOrigin] = true
+	DataAddPair(newOrigin, source, hologram)
+	EntityCallOnRemove(newOrigin, "smh_offsetter_data", function()
+		DataClearOffsetter(newOrigin)
+	end)
 	newOrigin.OnUpdateOffset = function(self)
-		for attachedSource in pairs(self.sources or {}) do
-			local attachedHologram = self.holograms and self.holograms[attachedSource]
+		local sources = DataGetSources(self)
+		for i = 1, #sources do
+			local attachedSource = sources[i]
+			local attachedHologram = DataGetHologram(self, attachedSource)
 			if IsValid(attachedSource) and IsValid(attachedHologram) then
 				offset(self, attachedSource, attachedHologram)
 			end
@@ -257,15 +289,7 @@ local function bindPair(newOrigin, source, hologram)
 
 	local function cleanup()
 		if IsValid(newOrigin) and not EntityIsMarkedForDeletion(newOrigin) then
-			newOrigin.sources[source] = nil
-			newOrigin.holograms[source] = nil
-			newOrigin.zeroPoints[source] = nil
-			if IsValid(source) and source.offsetters then
-				source.offsetters[newOrigin] = nil
-				if not next(source.offsetters) then
-					source.offsetters = nil
-				end
-			end
+			DataRemovePair(newOrigin, source)
 			storeDupeState(newOrigin)
 		end
 	end
@@ -295,9 +319,7 @@ local function captureZeroPoint(source, newOrigin, hologram)
 		hologramZero.bones[i] = { pos = baselinePos, ang = baselineAng }
 	end
 
-	newOrigin.zeroPoints = newOrigin.zeroPoints or {}
-	newOrigin.zeroPoints[source] = sourceZero
-	hologram.zeroPoint = hologramZero
+	DataSetZeroPoints(newOrigin, source, sourceZero, hologramZero)
 	bindPair(newOrigin, source, hologram)
 	storeDupeState(newOrigin)
 end
@@ -317,9 +339,6 @@ local function restoreDupeState(offsetter, data, createdEntities)
 		offsetter:SetZ(savedOffset.z)
 	end
 
-	offsetter.sources = {}
-	offsetter.holograms = {}
-	offsetter.zeroPoints = {}
 	for _, pair in ipairs(data.pairs or {}) do
 		local source = createdEntities[pair.source]
 		local hologram = createdEntities[pair.hologram]
@@ -333,8 +352,12 @@ local function restoreDupeState(offsetter, data, createdEntities)
 			local pos, ang = LocalToWorld(pose.pos, pose.ang, sourcePos, sourceAng)
 			sourceBones[bone] = { pos = pos, ang = ang }
 		end
-		offsetter.zeroPoints[source] = { bones = sourceBones, origin = offsetter, hologram = hologram }
-		hologram.zeroPoint = { bones = table.Copy(pair.hologramBones), origin = offsetter }
+		DataSetZeroPoints(
+			offsetter,
+			source,
+			{ bones = sourceBones, origin = offsetter, hologram = hologram },
+			{ bones = table.Copy(pair.hologramBones), origin = offsetter }
+		)
 		captureZeroPoint(source, offsetter, hologram)
 		bindPair(offsetter, source, hologram)
 	end
@@ -359,8 +382,10 @@ util.AddNetworkString("smh_offsetter_recapture")
 local function sendAttachedPairs(player)
 	local pairsToSend = {}
 	for _, offsetter in ipairs(ents.FindByClass("smh_offsetter")) do
-		for source in pairs(offsetter.sources or {}) do
-			local hologram = offsetter.holograms and offsetter.holograms[source]
+		local sources = DataGetSources(offsetter)
+		for i = 1, #sources do
+			local source = sources[i]
+			local hologram = DataGetHologram(offsetter, source)
 			if IsValid(source) and IsValid(hologram) then
 				table.insert(pairsToSend, { offsetter = offsetter, source = source, hologram = hologram })
 			end
@@ -390,8 +415,8 @@ net.Receive("smh_offsetter_recapture", function(_, player)
 		return
 	end
 
-	local hologram = IsValid(offsetter) and offsetter.holograms and offsetter.holograms[source]
-	if not IsValid(offsetter) or not offsetter.sources or not offsetter.sources[source] or not IsValid(hologram) then
+	local hologram = IsValid(offsetter) and DataGetHologram(offsetter, source)
+	if not IsValid(offsetter) or not DataHasPair(offsetter, source) or not IsValid(hologram) then
 		return
 	end
 
@@ -405,8 +430,8 @@ end)
 offset = function(newOrigin, source, hologram)
 	copyVisualState(source, hologram)
 
-	local sourceZero = newOrigin.zeroPoints and newOrigin.zeroPoints[source]
-	local hologramZero = hologram.zeroPoint
+	local sourceZero = DataGetSourceZeroPoint(newOrigin, source)
+	local hologramZero = DataGetHologramZeroPoint(newOrigin, source)
 	if
 		not sourceZero
 		or sourceZero.origin ~= newOrigin
@@ -418,11 +443,14 @@ offset = function(newOrigin, source, hologram)
 		captureZeroPoint(source, newOrigin, hologram)
 		return
 	end
+	---@cast sourceZero table
+	---@cast hologramZero table
 
 	local originPos, originAng = getOriginTransform(newOrigin)
+	local sourceBones, hologramBones = sourceZero.bones or {}, hologramZero.bones or {}
 	for i = 0, math.min(EntityGetPhysicsObjectCount(source), EntityGetPhysicsObjectCount(hologram)) - 1 do
 		local sourcePhys, hologramPhys = EntityGetPhysicsObjectNum(source, i), EntityGetPhysicsObjectNum(hologram, i)
-		local sourceBaseline, hologramBaseline = sourceZero.bones[i], hologramZero.bones[i]
+		local sourceBaseline, hologramBaseline = sourceBones[i], hologramBones[i]
 		if
 			not sourcePhys
 			or not hologramPhys
@@ -446,34 +474,34 @@ offset = function(newOrigin, source, hologram)
 	end
 end
 
-local function process(entity)
-	local holograms = entity.holograms
-	local offsetters = entity.offsetters
-	if istable(offsetters) then
-		for offsetter in pairs(offsetters) do
-			if not IsValid(offsetter) then
-				offsetters[offsetter] = nil
-				continue
-			end
-			local hologram = offsetter.holograms and offsetter.holograms[entity]
-			if IsValid(hologram) then
+---@param entities Entity[]
+local function process(entities)
+	for _, entity in ipairs(entities) do
+		local offsetters = DataGetOffsetters(entity)
+		local staleOffsetters = {}
+		for i = 1, #offsetters do
+			local offsetter = offsetters[i]
+			local hologram = EntityIsValid(offsetter) and DataGetHologram(offsetter, entity)
+			if EntityIsValid(offsetter) and EntityIsValid(hologram) then
 				---@cast hologram Entity
 				offset(offsetter, entity, hologram)
-			elseif offsetter.sources then
-				offsetter.sources[entity] = nil
-				offsetter.holograms[entity] = nil
-				if offsetter.zeroPoints then
-					offsetter.zeroPoints[entity] = nil
-				end
-				offsetters[offsetter] = nil
+			else
+				table.insert(staleOffsetters, offsetter)
+			end
+		end
+		for i = 1, #staleOffsetters do
+			local offsetter = staleOffsetters[i]
+			DataRemovePair(offsetter, entity)
+			if EntityIsValid(offsetter) then
 				storeDupeState(offsetter)
 			end
 		end
-	elseif istable(holograms) then
-		local sources = entity.sources
-		for source in pairs(sources or {}) do
-			local hologram = holograms[source]
-			if IsValid(source) and IsValid(hologram) then
+
+		local sources = DataGetSources(entity)
+		for i = 1, #sources do
+			local source = sources[i]
+			local hologram = DataGetHologram(entity, source)
+			if EntityIsValid(source) and EntityIsValid(hologram) then
 				offset(entity, source, hologram)
 			end
 		end

@@ -28,11 +28,13 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Float", "Z", { KeyName = "z", Edit = { type = "Float", min = -1000, max = 1000 } })
 
 	local function offset(self, str, old, new)
-		if not self.Offset then
-			self.Offset = Vector(self:GetX(), self:GetY(), self:GetZ())
+		local offset = SMHOffsetter.Data.GetOffset(self)
+		if not offset then
+			offset = Vector(self:GetX(), self:GetY(), self:GetZ())
+			SMHOffsetter.Data.SetOffset(self, offset)
 		end
-		self.Offset[mapping[str]] = tonumber(new)
-		self:OnUpdateOffset()
+		offset[mapping[str]] = tonumber(new)
+		self:OnUpdateOffset(offset)
 	end
 	self:NetworkVarNotify("X", offset)
 	self:NetworkVarNotify("Y", offset)

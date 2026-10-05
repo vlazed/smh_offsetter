@@ -62,33 +62,20 @@ function TOOL:Reload(tr)
 		return true
 	end
 
-	local offsetters = entity.offsetters or (IsValid(entity.offsetter) and { [entity.offsetter] = true })
-	if istable(offsetters) then
-		for offsetter in pairs(offsetters) do
-			if not IsValid(offsetter) then
-				continue
-			end
-			local holograms = offsetter.holograms
-			local hologram = holograms and holograms[entity]
-			if IsValid(hologram) then
-				hologram:Remove()
-			end
-
-			if offsetter.sources then
-				offsetter.sources[entity] = nil
-			end
-			if holograms then
-				holograms[entity] = nil
-			end
-
-			if offsetter.zeroPoints then
-				offsetter.zeroPoints[entity] = nil
-			end
-			SMHOffsetter.StoreDupeState(offsetter)
+	local offsetters = SMHOffsetter.Data.GetOffsetters(entity)
+	for i = 1, #offsetters do
+		local offsetter = offsetters[i]
+		if not IsValid(offsetter) then
+			continue
 		end
+		local hologram = SMHOffsetter.Data.GetHologram(offsetter, entity)
+		if IsValid(hologram) then
+			hologram:Remove()
+		end
+
+		SMHOffsetter.Data.RemovePair(offsetter, entity)
+		SMHOffsetter.StoreDupeState(offsetter)
 	end
-	entity.offsetters = nil
-	entity.offsetter = nil
 
 	return true
 end
@@ -132,12 +119,7 @@ function TOOL:LeftClick(tr)
 			return false
 		end
 
-		offsetter.sources = offsetter.sources or {}
-		offsetter.holograms = offsetter.holograms or {}
-		source.offsetters = source.offsetters or {}
-		source.offsetters[offsetter] = true
-		offsetter.sources[source] = true
-		local hologram = offsetter.holograms[source]
+		local hologram = SMHOffsetter.Data.GetHologram(offsetter, source)
 		if not IsValid(hologram) then
 			local package
 			if source.EntityMods then
@@ -150,7 +132,6 @@ function TOOL:LeftClick(tr)
 				source.EntityMods["SMHPackage"] = package
 			end
 			_, hologram = next(paste)
-			offsetter.holograms[source] = hologram
 
 			undo.Create("smh_offsetter")
 			undo.AddEntity(hologram)
