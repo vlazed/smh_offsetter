@@ -12,7 +12,7 @@ ENT.Author = "vlazed"
 
 ENT.Category = "Stop Motion Helper"
 ENT.Editable = true
-ENT.Spawnable = true
+ENT.Spawnable = false
 
 function ENT:OnUpdateOffset(x, y, z) end
 
