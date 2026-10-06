@@ -1,5 +1,7 @@
 # SMH Offsetter <!-- omit from toc -->
 
+[![Deploy to Workshop](https://github.com/vlazed/smh_offsetter/actions/workflows/workshop_deploy.yml/badge.svg)](https://github.com/vlazed/smh_offsetter/actions/workflows/workshop_deploy.yml)
+
 Move a recorded physics-bone animation relative to an offsetter entity
 
 ## Table of Contents <!-- omit from toc -->

@@ -14,7 +14,9 @@ ENT.Category = "Stop Motion Helper"
 ENT.Editable = true
 ENT.Spawnable = false
 
-function ENT:OnUpdateOffset(x, y, z) end
+ENT.WantsTranslucency = true
+
+function ENT:OnUpdateOffset() end
 
 local mapping = {
 	["X"] = 1,
@@ -42,10 +44,6 @@ function ENT:SetupDataTables()
 end
 
 function ENT:Initialize()
-	local Radius = 6
-	local mins = Vector(1, 1, 1) * Radius * -0.5
-	local maxs = Vector(1, 1, 1) * Radius * 0.5
-
 	if SERVER then
 		self:SetModel("models/maxofs2d/cube_tool.mdl")
 		self:PhysicsInit(SOLID_VPHYSICS)
@@ -61,6 +59,18 @@ function ENT:Initialize()
 		self:DrawShadow(false)
 		self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 	end
+end
 
-	self:SetCollisionBounds(mins, maxs)
+function ENT:DrawTranslucent(flags)
+	local wep = LocalPlayer():GetActiveWeapon()
+	if not IsValid(wep) then
+		return
+	end
+
+	local weapon_name = wep:GetClass()
+	if weapon_name ~= "weapon_physgun" and weapon_name ~= "gmod_tool" then
+		return
+	end
+
+	self:DrawModel(flags)
 end
