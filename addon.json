@@ -1,0 +1,11 @@
+{
+    "ignore": [
+        "README.md",
+        ".git/*",
+        ".github/*",
+		".gitignore"
+    ],
+    "tags": ["build", "movie"],
+    "title": "SMH Offsetter",
+    "type": "tool"
+}
