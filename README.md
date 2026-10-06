@@ -31,13 +31,13 @@ SMH Offsetter creates a hologram for a source ragdoll and applies the source's p
 3. Left-click the source ragdoll again, and then left-click the offsetter. A hologram (which is a duplicate of your animation) is created for the source.
 4. Repeat the selection steps to attach additional source ragdolls to the same offsetter.
 5. Move or rotate the offsetter to place the holograms. Right-click the Offsetter -> Edit Properties... to edit the relative position of all holograms.
-6. Use the tool's control panel to view attached pairs. Select a row and choose **Recapture selected zero point** to set a new origin for that pair, relative to the Offsetter entity.
+6. Use the tool's control panel to view attached pairs. Select a row and choose **Recapture selected zero point** to set a new origin for that pair, relative to the offsetter entity.
 7. Reload-click a linked source ragdoll to remove its hologram and stop tracking it.
 
 All offsetters, linked source ragdolls, and their holograms, can be saved in a GMod save.
 
 > [!NOTE]
-> Loading offsetters will automatically set origins for any holograms in the scene. Make sure that your holograms are in the correct relative position to your offsetters. If not, you will need to perform an origin recapture again
+> Loading offsetters from a GMod save will automatically set origins for any holograms in the scene. Make sure that your holograms are in the correct relative position to your offsetters. If not, you will need to perform an origin recapture again
 
 ### Stop Motion Helper
 

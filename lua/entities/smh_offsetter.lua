@@ -61,6 +61,10 @@ function ENT:Initialize()
 	end
 end
 
+function ENT:Draw(flags)
+	self:DrawTranslucent(flags)
+end
+
 function ENT:DrawTranslucent(flags)
 	local wep = LocalPlayer():GetActiveWeapon()
 	if not IsValid(wep) then

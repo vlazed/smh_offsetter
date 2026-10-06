@@ -41,6 +41,7 @@ local EntityGetBoneCount, EntityGetManipulateBonePosition, EntityGetManipulateBo
 local EntityGetManipulateBoneScale, EntityManipulateBonePosition, EntityManipulateBoneAngles
 local EntityManipulateBoneScale, EntityEntIndex, EntityCallOnRemove, EntityIsMarkedForDeletion
 local EntityIsValid, PhysObjIsValid
+local EntitySetCollisionGroup
 
 local PhysObjGetPos, PhysObjGetAngles, PhysObjEnableMotion, PhysObjEnableCollisions
 local PhysObjSetPos, PhysObjSetAngles, PhysObjWake
@@ -56,6 +57,7 @@ local function updateEntityMethods(smh)
 
 	EntityGetPos = ENTITY.GetPos
 	EntityGetAngles = ENTITY.GetAngles
+	EntitySetCollisionGroup = ENTITY.SetCollisionGroup
 	EntityGetPhysicsObject = entityMethod("EntityGetPhysicsObject", "GetPhysicsObject")
 	EntityGetPhysicsObjectCount = entityMethod("EntityGetPhysicsObjectCount", "GetPhysicsObjectCount")
 	EntityGetPhysicsObjectNum = entityMethod("EntityGetPhysicsObjectNum", "GetPhysicsObjectNum")
@@ -150,7 +152,7 @@ end
 
 local function setPhysicsPose(phys, pos, ang)
 	PhysObjEnableMotion(phys, false)
-	PhysObjEnableCollisions(phys, false)
+	-- PhysObjEnableCollisions(phys, false)
 	PhysObjSetPos(phys, pos, true)
 	PhysObjSetAngles(phys, ang)
 	PhysObjWake(phys)
@@ -303,6 +305,7 @@ end
 ---@param hologram Entity
 local function captureZeroPoint(source, newOrigin, hologram)
 	local originPos, originAng = getOriginTransform(newOrigin)
+	EntitySetCollisionGroup(hologram, COLLISION_GROUP_WORLD)
 	local sourceZero, hologramZero =
 		{ bones = {}, origin = newOrigin, hologram = hologram }, { bones = {}, origin = newOrigin }
 	for i = 0, math.min(EntityGetPhysicsObjectCount(source), EntityGetPhysicsObjectCount(hologram)) - 1 do
