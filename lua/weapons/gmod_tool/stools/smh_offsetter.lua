@@ -131,7 +131,10 @@ function TOOL:LeftClick(tr)
 			if source.EntityMods and package then
 				source.EntityMods["SMHPackage"] = package
 			end
-			_, hologram = next(paste)
+			hologram = paste[source:EntIndex()]
+			if not IsValid(hologram) then
+				return false
+			end
 
 			undo.Create("smh_offsetter")
 			undo.AddEntity(hologram)
