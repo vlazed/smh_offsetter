@@ -34,11 +34,18 @@ local function createOffsetter(source, player)
 	if not IsValid(offsetter) then
 		return nil
 	end
-
 	offsetter:SetPos(spawnPos)
 	offsetter:SetAngles(spawnAng)
 	offsetter:Spawn()
 	offsetter:Activate()
+
+	local _, top = offsetter:GetCollisionBounds()
+	top.x = 0
+	top.y = 0
+	top.z = top.z * 1.5
+	spawnPos:Add(top)
+	offsetter:SetPos(spawnPos)
+	offsetter:SetCollisionGroup(COLLISION_GROUP_WORLD)
 
 	local phys = offsetter:GetPhysicsObject()
 	if IsValid(phys) then
@@ -219,6 +226,9 @@ local function toolEquipped(pl)
 end
 
 function TOOL.BuildCPanel(panel)
+	panel:Clear()
+	panel:Help("#tool.smh_offsetter.help1")
+
 	activeSourceList = vgui.Create("DListView", panel)
 	activeSourceList:SetTall(180)
 	activeSourceList:AddColumn("#tool.smh_offsetter.list_offsetter")
@@ -228,6 +238,7 @@ function TOOL.BuildCPanel(panel)
 
 	local refreshButton = panel:Button("#tool.smh_offsetter.refresh")
 	refreshButton.DoClick = requestSourceList
+	refreshButton:SetTooltip("#tool.smh_offsetter.refresh.tooltip")
 
 	local recaptureButton = panel:Button("#tool.smh_offsetter.recapture")
 	recaptureButton.DoClick = function()
@@ -242,6 +253,7 @@ function TOOL.BuildCPanel(panel)
 		net.WriteEntity(line.Offsetter)
 		net.SendToServer()
 	end
+	recaptureButton:SetTooltip("#tool.smh_offsetter.recapture.tooltip")
 
 	local unlinkButton = panel:Button("#tool.smh_offsetter.unlink")
 	unlinkButton.DoClick = function()
@@ -256,6 +268,7 @@ function TOOL.BuildCPanel(panel)
 		net.WriteEntity(line.Offsetter)
 		net.SendToServer()
 	end
+	unlinkButton:SetTooltip("#tool.smh_offsetter.unlink.tooltip")
 
 	requestSourceList()
 
