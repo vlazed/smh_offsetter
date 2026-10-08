@@ -115,7 +115,7 @@ local function storeDupeState(offsetter)
 	end
 
 	local data = {
-		offset = Vector(offsetter:GetX(), offsetter:GetY(), offsetter:GetZ()),
+		offset = Vector(0, 0, 0),
 		pairs = {},
 	}
 	local sources = DataGetSources(offsetter)
