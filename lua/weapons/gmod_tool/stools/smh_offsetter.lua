@@ -16,10 +16,12 @@ end
 local down = -vector_up
 local function createOffsetter(source, player)
 	local mins, maxs = source:WorldSpaceAABB()
-	local spawnPos = Vector((mins.x + maxs.x) * 0.5, (mins.y + maxs.y) * 0.5, mins.z)
+	local pos = source:GetPos()
+	local spawnPos = pos
+	spawnPos.z = mins.z
 	local trace = util.TraceLine({
-		start = Vector(spawnPos.x, spawnPos.y, maxs.z + 32768),
-		endpos = Vector(spawnPos.x, spawnPos.y, mins.z - 32768),
+		start = Vector(spawnPos.x, spawnPos.y, maxs.z),
+		endpos = Vector(spawnPos.x, spawnPos.y, mins.z),
 		filter = { source, player },
 		mask = MASK_SOLID_BRUSHONLY,
 	})
@@ -39,11 +41,12 @@ local function createOffsetter(source, player)
 	offsetter:Spawn()
 	offsetter:Activate()
 
-	local _, top = offsetter:GetCollisionBounds()
-	top.x = 0
-	top.y = 0
-	top.z = top.z * 1.5
-	spawnPos:Add(top)
+	if trace.Hit then
+		local _, top = offsetter:GetCollisionBounds()
+		top.x = 0
+		top.y = 0
+		spawnPos:Add(top)
+	end
 	offsetter:SetPos(spawnPos)
 	offsetter:SetCollisionGroup(COLLISION_GROUP_WORLD)
 
