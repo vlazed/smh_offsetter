@@ -100,6 +100,7 @@ local function drawArrow(pos, forward, right, arrowLength, color, headWidth)
 		color
 	)
 	render.DrawQuad(baseLeft, tip, baseRight, center, color)
+	render.CullMode(MATERIAL_CULLMODE_CCW)
 end
 
 if CLIENT then
