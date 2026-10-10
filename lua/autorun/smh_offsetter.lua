@@ -504,8 +504,10 @@ offset = function(newOrigin, source, hologram)
 	end
 end
 
+local stopProcess = false
 ---@param entities Entity[]
 local function process(entities)
+	stopProcess = true
 	for _, entity in ipairs(entities) do
 		local offsetters = DataGetOffsetters(entity)
 		local staleOffsetters = {}
@@ -536,6 +538,39 @@ local function process(entities)
 			end
 		end
 	end
+	stopProcess = false
 end
 -- This sets the frame position immediately after an entity moves
 hook.Add("SMH_PostFrameEntity", "SMH_OffsetEntity", process)
+
+local passiveProcessCvar = CreateConVar(
+	"smh_offsetter_passive",
+	"1",
+	{ FCVAR_USERINFO, FCVAR_REPLICATED, FCVAR_ARCHIVE },
+	"Set to 1 by default. The hologram of an offsetter will automatically be offset to its offsetter entity.",
+	0,
+	1
+)
+local function passiveProcess()
+	if stopProcess then
+		return
+	end
+	for _, entity in ipairs(ents.FindByClass("smh_offsetter")) do
+		local sources = DataGetSources(entity)
+		for i = 1, #sources do
+			local source = sources[i]
+			local hologram = DataGetHologram(entity, source)
+			if EntityIsValid(source) and EntityIsValid(hologram) then
+				offset(entity, source, hologram)
+			end
+		end
+	end
+end
+local function addProcess(cvar, old, new)
+	hook.Remove("Think", "SMH_OffsetEntityPassive")
+	if tobool(new) then
+		hook.Add("Think", "SMH_OffsetEntityPassive", passiveProcess)
+	end
+end
+cvars.AddChangeCallback("smh_offsetter_passive", addProcess, "smh_offsetter_passive_callback")
+addProcess(_, _, passiveProcessCvar:GetBool())
