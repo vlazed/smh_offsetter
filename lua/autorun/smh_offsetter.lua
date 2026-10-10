@@ -552,16 +552,18 @@ local passiveProcessCvar = CreateConVar(
 	1
 )
 local function passiveProcess()
-	if stopProcess then
-		return
-	end
-	for _, entity in ipairs(ents.FindByClass("smh_offsetter")) do
-		local sources = DataGetSources(entity)
-		for i = 1, #sources do
-			local source = sources[i]
-			local hologram = DataGetHologram(entity, source)
-			if EntityIsValid(source) and EntityIsValid(hologram) then
-				offset(entity, source, hologram)
+	for _, player in ipairs(player.GetAll()) do
+		if stopProcess or SMH.PlaybackManager.GetActivePlayback(player) then
+			return
+		end
+		for _, entity in ipairs(ents.FindByClass("smh_offsetter")) do
+			local sources = DataGetSources(entity)
+			for i = 1, #sources do
+				local source = sources[i]
+				local hologram = DataGetHologram(entity, source)
+				if EntityIsValid(source) and EntityIsValid(hologram) then
+					offset(entity, source, hologram)
+				end
 			end
 		end
 	end
