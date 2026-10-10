@@ -13,7 +13,6 @@ function TOOL:Think()
 	end
 end
 
-local down = -vector_up
 local function createOffsetter(source, player)
 	local mins, maxs = source:WorldSpaceAABB()
 	local pos = source:GetPos()
@@ -40,6 +39,7 @@ local function createOffsetter(source, player)
 	offsetter:SetAngles(spawnAng)
 	offsetter:Spawn()
 	offsetter:Activate()
+	offsetter:SetOffsetterName("Offsetter")
 
 	if trace.Hit then
 		local _, top = offsetter:GetCollisionBounds()
@@ -211,7 +211,9 @@ net.Receive("smh_offsetter_send_list", function()
 			if not IsValid(entity) then
 				return language.GetPhrase("tool.smh_offsetter.removed")
 			end
-			return string.format("%d: %s", entity:EntIndex(), entity:GetModel() or entity:GetClass())
+			local name = entity.GetOffsetterName and entity:GetOffsetterName()
+				or (entity:GetModel() or entity:GetClass())
+			return string.format("%d: %s", entity:EntIndex(), name)
 		end
 
 		local line = activeSourceList:AddLine(label(row.offsetter), label(row.source), label(row.hologram))

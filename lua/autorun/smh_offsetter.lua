@@ -7,6 +7,8 @@ if not SMHOffsetter or not SMHOffsetter.Data then
 end
 
 local offset
+local sendAttachedPairs
+
 local Data = SMHOffsetter.Data
 local DataAddPair = Data.AddPair
 local DataClearOffsetter = Data.ClearOffsetter
@@ -116,6 +118,7 @@ local function storeDupeState(offsetter)
 
 	local data = {
 		offset = Vector(0, 0, 0),
+		name = offsetter:GetOffsetterName(),
 		pairs = {},
 	}
 	local sources = DataGetSources(offsetter)
@@ -288,6 +291,13 @@ local function bindPair(newOrigin, source, hologram)
 		end
 		storeDupeState(self)
 	end
+	newOrigin.OnUpdateName = function(self)
+		storeDupeState(self)
+		-- TODO: Maybe add a guard against this?
+		for _, player in ipairs(player.GetAll()) do
+			sendAttachedPairs(player)
+		end
+	end
 
 	local function cleanup()
 		if IsValid(newOrigin) and not EntityIsMarkedForDeletion(newOrigin) then
@@ -341,6 +351,10 @@ local function restoreDupeState(offsetter, data, createdEntities)
 		offsetter:SetY(savedOffset.y)
 		offsetter:SetZ(savedOffset.z)
 	end
+	local name = data.name
+	if isstring(name) then
+		offsetter:SetOffsetterName(name)
+	end
 
 	for _, pair in ipairs(data.pairs or {}) do
 		local source = createdEntities[pair.source]
@@ -383,7 +397,7 @@ util.AddNetworkString("smh_offsetter_send_list")
 util.AddNetworkString("smh_offsetter_recapture")
 util.AddNetworkString("smh_offsetter_unlink")
 
-local function sendAttachedPairs(player)
+sendAttachedPairs = function(player)
 	local pairsToSend = {}
 	for _, offsetter in ipairs(ents.FindByClass("smh_offsetter")) do
 		local sources = DataGetSources(offsetter)
