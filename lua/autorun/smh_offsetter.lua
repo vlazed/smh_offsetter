@@ -457,8 +457,10 @@ end)
 ---@param newOrigin Entity The entity that acts as our origin point
 ---@param source Entity The entity whose per-physbone motion is applied
 ---@param hologram Entity The entity receiving the offset pose
-offset = function(newOrigin, source, hologram)
-	copyVisualState(source, hologram)
+offset = function(newOrigin, source, hologram, copyVisual)
+	if copyVisual then
+		copyVisualState(source, hologram)
+	end
 
 	local sourceZero = DataGetSourceZeroPoint(newOrigin, source)
 	local hologramZero = DataGetHologramZeroPoint(newOrigin, source)
@@ -534,7 +536,7 @@ local function process(entities)
 			local source = sources[i]
 			local hologram = DataGetHologram(entity, source)
 			if EntityIsValid(source) and EntityIsValid(hologram) then
-				offset(entity, source, hologram)
+				offset(entity, source, hologram, true)
 			end
 		end
 	end
@@ -562,7 +564,7 @@ local function passiveProcess()
 				local source = sources[i]
 				local hologram = DataGetHologram(entity, source)
 				if EntityIsValid(source) and EntityIsValid(hologram) then
-					offset(entity, source, hologram)
+					offset(entity, source, hologram, false)
 				end
 			end
 		end
