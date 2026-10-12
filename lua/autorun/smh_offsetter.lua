@@ -26,7 +26,6 @@ local DataGetClassVars = Data.GetClassVars
 
 local ENTITY = FindMetaTable("Entity")
 local PHYSOBJ = FindMetaTable("PhysObj")
-local opt = SMH.Optimizations
 ---@type fun(entity: Entity): Vector
 local EntityGetPos
 ---@type fun(entity: Entity): Angle
@@ -48,7 +47,7 @@ local EntitySetCollisionGroup
 local PhysObjGetPos, PhysObjGetAngles, PhysObjEnableMotion, PhysObjEnableCollisions
 local PhysObjSetPos, PhysObjSetAngles, PhysObjWake
 local function updateEntityMethods(smh)
-	opt = smh and smh.Optimizations or SMH.Optimizations
+	local opt = (smh and smh.Optimizations) or (SMH and SMH.Optimizations) or {}
 	local function entityMethod(optimizedName, entityName)
 		return opt[optimizedName] or ENTITY[entityName]
 	end
