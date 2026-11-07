@@ -554,7 +554,7 @@ local passiveProcessCvar = CreateConVar(
 )
 local function passiveProcess()
 	for _, player in ipairs(player.GetAll()) do
-		if stopProcess or SMH.PlaybackManager.GetActivePlayback(player) then
+		if stopProcess or (SMH.PlaybackManager.GetActivePlayback and SMH.PlaybackManager.GetActivePlayback(player)) then
 			return
 		end
 		for _, entity in ipairs(ents.FindByClass("smh_offsetter")) do
