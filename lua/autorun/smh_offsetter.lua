@@ -517,7 +517,7 @@ local function process(entities)
 			local hologram = EntityIsValid(offsetter) and DataGetHologram(offsetter, entity)
 			if EntityIsValid(offsetter) and EntityIsValid(hologram) then
 				---@cast hologram Entity
-				offset(offsetter, entity, hologram)
+				offset(offsetter, entity, hologram, true)
 			else
 				table.insert(staleOffsetters, offsetter)
 			end
@@ -552,7 +552,33 @@ local passiveProcessCvar = CreateConVar(
 	0,
 	1
 )
+
+local alwaysCopyVisualsCvar = CreateConVar(
+	"smh_offsetter_passive_visuals",
+	"0",
+	{ FCVAR_USERINFO, FCVAR_REPLICATED, FCVAR_ARCHIVE },
+	"Set to 0 by default. If set to 1, visuals will always copy even during passive offsetting.",
+	0,
+	1
+)
+
+local passiveProcessInterval = CreateConVar(
+	"smh_offsetter_passive_interval",
+	"0",
+	{ FCVAR_USERINFO, FCVAR_REPLICATED, FCVAR_ARCHIVE },
+	"Set to 0 by default, which means update every tick. This is the number of seconds which to update all offsetters. Set it to a value above 0.1 if you want to reduce lag from offsetting",
+	0,
+	1
+)
+
+local previous = CurTime()
 local function passiveProcess()
+	local now = CurTime()
+	if now - previous < passiveProcessInterval:GetFloat() then
+		return
+	end
+	previous = now
+
 	for _, player in ipairs(player.GetAll()) do
 		if stopProcess or (SMH.PlaybackManager.GetActivePlayback and SMH.PlaybackManager.GetActivePlayback(player)) then
 			return
@@ -563,7 +589,7 @@ local function passiveProcess()
 				local source = sources[i]
 				local hologram = DataGetHologram(entity, source)
 				if EntityIsValid(source) and EntityIsValid(hologram) then
-					offset(entity, source, hologram, false)
+					offset(entity, source, hologram, alwaysCopyVisualsCvar:GetBool())
 				end
 			end
 		end
