@@ -36,7 +36,7 @@ local function getClassVars(source, class, create)
 	if not classVars and create then
 		classVars = { names = {}, sent = false }
 		if EntityIsScripted(source) then
-			local values = source:GetNetworkVars() or {}
+			local values = source.GetNetworkVars and source:GetNetworkVars() or {}
 			classVars.sent = true
 			for name in pairs(values) do
 				table.insert(classVars.names, name)
